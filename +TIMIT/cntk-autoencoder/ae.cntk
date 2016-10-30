@@ -1,0 +1,181 @@
+#****************************In the Name of God****************************
+# the Autoencoder configuration file in CNTK. you can remove initFromFilePath
+# Attribute form parameters to initialize weights randomly.
+
+# Permission is granted for anyone to copy, use, modify, or distribute this
+# program and accompanying programs and documents for any purpose, provided
+# this copyright notice is retained and prominently displayed, along with
+# a note saying that the original programs are available from our web page.
+#
+# The programs and documents are distributed without any warranty, express
+# or implied.  As the programs were written for research purposes only,
+# they have not been tested to the degree that would be advisable in any
+# important application.  All use of these programs is entirely at the
+# user's own risk.
+
+# CONTRIBUTORS
+#	Created by:
+#   	Hassan Taherian
+#   	09/2016
+#
+#           LIMP(Laboratory for Intelligent Multimedia Processing),
+#           AUT(Amirkabir University of Technology), Tehran, Iran
+# 
+#**************************************************************************
+
+stderr="log/log.txt"
+modelPath="Models/2000-700-50.dnn"
+deviceId=0
+
+InputDim=792
+command=train:dummynode:writeTrain:writeTest
+precision=float
+outputNodeNames=reconstructFeatures.hidden3
+train={
+	action="train"
+
+	BrainScriptNetworkBuilder={
+
+
+		#dimension
+		IDim=$InputDim$
+		L1=2000
+		L2=700
+		L3=50
+		L4=700
+		L5=2000
+		ODim=$InputDim$
+
+		#define Model
+		model(features)={
+
+		#parameter
+		W0 = ParameterTensor {(L1:IDim), initFromFilePath='pretrainedDBNWeights/Init-W0.txt'}
+		b0 = ParameterTensor {L1, initFromFilePath='pretrainedDBNWeights/Init-b0.txt'} 
+        W1 = ParameterTensor {(L2:L1), initFromFilePath='pretrainedDBNWeights/Init-W1.txt'}  
+        b1 = ParameterTensor {L2, initFromFilePath='pretrainedDBNWeights/Init-b1.txt'}
+        W2 = ParameterTensor {(L3:L2), initFromFilePath='pretrainedDBNWeights/Init-W2.txt'} ;   
+        b2 = ParameterTensor {L3, initFromFilePath='pretrainedDBNWeights/Init-b2.txt'}
+
+        W3 = ParameterTensor {(L4:L3), initFromFilePath='pretrainedDBNWeights/Init-W3.txt'} ;   
+        b3 = ParameterTensor {L4, initFromFilePath='pretrainedDBNWeights/Init-b3.txt'}
+        W4 = ParameterTensor {(L5:L4), initFromFilePath='pretrainedDBNWeights/Init-W4.txt'} ;   
+        b4 = ParameterTensor {L5,initFromFilePath='pretrainedDBNWeights/Init-b4.txt'}
+        W5 = ParameterTensor {(ODim:L5), initFromFilePath='pretrainedDBNWeights/Init-W5.txt'} ; 
+        b5 = ParameterTensor {ODim, initFromFilePath='pretrainedDBNWeights/Init-b5.txt'}
+
+
+        #formula
+        normFeat=LayerNormalizationLayer{}(features)
+        hidden1=Sigmoid(W0*normFeat+b0)
+        hidden2=Sigmoid(W1*hidden1+b1)
+        hidden3=Sigmoid(W2*hidden2+b2)
+        hidden4=Sigmoid(W3*hidden3+b3)
+        hidden5=Sigmoid(W4*hidden4+b4)
+        output=W5*hidden5+b5
+		}
+
+		#define Input
+		features=Input{IDim}
+		featForCompare=Input{IDim}
+	
+		
+		#apply model
+		reconstructFeatures= model(features).output
+
+
+		#define Critera
+
+		trainCost=SquareError(featForCompare,reconstructFeatures)
+		evalCost=SquareError(featForCompare,reconstructFeatures)
+
+		#define Nodes
+		featureNodes=(features)
+		outputNodes=(model(features).hidden3)
+		criterionNodes=(trainCost)
+		evaluationNode=(evalCost)
+		
+
+	}
+
+	SGD={
+
+		epochSize=0
+        minibatchSize=128
+        learningRatesPerMB=0.01
+        momentumPerMB=0.9
+        dropoutRate=0
+        maxEpochs=200
+		
+	}
+
+    reader=[     
+      readerType=HTKMLFReader
+#     readMethod=blockRandomize
+      readMethod=rollingWindow
+      miniBatchMode=Partial
+      randomize=Auto
+      verbosity=1   
+      features=[
+      dim=$InputDim$
+      scpFile= ../script/train.scp
+      ]
+      featForCompare=[
+      dim=$InputDim$
+      scpFile= ../script/train.scp
+      ]
+    ]
+
+}
+
+writeTrain={
+	action="write"
+
+	 reader=[     
+      readerType=HTKMLFReader   
+      features=[
+      dim=$InputDim$
+      scpFile= ../script/train.scp
+      type=Real
+      ]
+    ]
+
+    #outputNodes
+    writer=[
+	writerType=HTKMLFWriter	
+	reconstructFeatures.hidden3 = [
+	   dim=50
+	   scpFile= ../script/train_output.scp
+	   type=Real
+	]
+   ]
+	}
+
+
+writeTest={
+	action="write"
+
+	 reader=[     
+      readerType=HTKMLFReader   
+      features=[
+      dim=$InputDim$
+      scpFile= ../script/test.scp
+      type=Real
+      ]
+    ]
+
+    #outputNodes
+    writer=[
+	writerType=HTKMLFWriter	
+	reconstructFeatures.hidden3 = [
+	   dim=50
+	   scpFile= ../script/test_output.scp
+	   type=Real
+	]
+   ]
+	}
+
+dummynode={
+	action="dumpNode"
+	printValue=true
+}
