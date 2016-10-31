@@ -11,3 +11,4 @@ Unfortunately Deep Belief Network is not available in Microsoft’s Computationa
 
 
 This program is powered by DeeBNet toolbox, implemented in Laboratory for Intelligent Multimedia Processing (LIMP) by Mohammad Ali Keyvanrad (http://ce.aut.ac.ir/~keyvanrad). DeeBNet is designed to be very modular, extensible, reusable and can easily be modified and extended. it is an object oriented toolbox with the most important abilities needed for the implementation of DBNs.
+For downloadnig complete DeeBNet Toolbox visit http://ce.aut.ac.ir/~keyvanrad/DeeBNet%20Toolbox.html
