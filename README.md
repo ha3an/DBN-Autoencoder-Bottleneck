@@ -1,6 +1,7 @@
 # Bottleneck Feature Extraction for TIMIT dataset with Deep Belief Network and Autoencoder
 
 Author: Hassan Taherian
+Laboratory for Intelligent Multimedia Processing (LIMP)
 
 Unfortunately Deep Belief Network is not provided in Microsoft’s Computational Network Toolkit (CNTK). This MATLAB based program can be used as an add-on to bring Deep Belief Network (DBN) support for CNTK. You can pretrain your network with it and use the trained weights as an initial point for your CNTK model. As a particular application, I write MATLAB scripts to pretrain features with DBN for bottleneck feature extraction of TIMIT dataset. 
 
